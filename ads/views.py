@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views import View
 from django.views.generic import DetailView
 
-from ads.models import Categories
+from ads.models import Categories, AdsModel
 
 
 def index(request):
@@ -55,3 +55,65 @@ class CategoriesDetailView(DetailView):
             'id': category.id,
             'name': category.name,
         })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AdsView(View):
+    def get(self, request):
+        ads = AdsModel.objects.all()
+
+        response = []
+        for i in ads:
+            response.append(
+                {
+                    'id': i.id,
+                    'name': i.name,
+                    'author': i.author,
+                    'price': i.price,
+                    'description': i.description,
+                    'address': i.address,
+                    'is_published': i.is_published,
+                }
+            )
+
+        return JsonResponse(response, safe=False)
+
+    def post(self, request):
+        ads_data = json.loads(request.body)
+
+        ads = AdsModel(**ads_data)
+        ads.save()
+
+        return JsonResponse(
+            {
+                'id': ads.id,
+                'name': ads.name,
+                'author': ads.author,
+                'price': ads.price,
+                'description': ads.description,
+                'address': ads.address,
+                'is_published': ads.is_published,
+            }
+        )
+
+
+class AdsDetailView(DetailView):
+    model = AdsModel
+
+    def get(self, request, *args, **kwargs):
+        try:
+            ads = self.get_object()
+        except AdsModel.DoesNotExist:
+            return JsonResponse({'error': 'Not found'}, status=404)
+
+        return JsonResponse(
+            {
+                'id': ads.id,
+                'name': ads.name,
+                'author': ads.author,
+                'price': ads.price,
+                'description': ads.description,
+                'address': ads.address,
+                'is_published': ads.is_published,
+            }
+        )
