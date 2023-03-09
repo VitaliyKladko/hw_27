@@ -1,6 +1,6 @@
 import json
 
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views import View
@@ -48,7 +48,7 @@ class CategoriesDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         try:
             category = self.get_object()
-        except Categories.DoesNotExist:
+        except Http404:
             return JsonResponse({'error': 'Not found'}, status=404)
 
         return JsonResponse({
@@ -103,7 +103,7 @@ class AdsDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         try:
             ads = self.get_object()
-        except AdsModel.DoesNotExist:
+        except Http404:
             return JsonResponse({'error': 'Not found'}, status=404)
 
         return JsonResponse(
